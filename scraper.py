@@ -15,21 +15,24 @@ def get_request_url(url):
         return result.content
 
 
-# cette fonction permet de recupere tous les lien des categories
-def get_all_category_link(url):
-    all_link = []  # j'initialise une liste vide pour pouvoir stocké les liens
-    soup = BeautifulSoup(get_request_url(url), 'html.parser')
-
-# je boucle pour chaque lien  je les ajoute avec append
+# cette fonction permet de recupere tous les lien des categorie et des livres
+def get_all_link(url):
+    book_link = []  # j'initialise une liste vide pour pouvoir stocké les liens des livres
+    category_link = []  # j'initialise une liste pour les category
+    soup = BeautifulSoup(get_request_url(
+        url), 'html.parser')  # je cree ma soupe
+# je boucle et pour chaque lien  je le rajoute a book_link qui va contenir tout les liens dans un premier temps
     for link in soup.find_all('a', href=True):
-        all_link.append(link['href'])
+        book_link.append(link['href'])
+# je recupere tout les liens qui contienne les categorie je les ajoutes dans la liste categorie
+# et je les supprime de book_link
+    for link in book_link:
+        if ("catalogue/category/" in link):
+            category_link.append(link)
+            book_link.remove(link)
 
-    print(all_link)
 
-
-get_all_category_link(url)
-
-
+# cette fonction me permet de recuperer toutes les information du livres de la page demandé
 def get_text_from_page(url):
     # get_text_from_page fait appel a la fonction get_request_url
     soup = BeautifulSoup(get_request_url(url), 'html.parser')
@@ -42,8 +45,9 @@ def get_text_from_page(url):
     return result
 
 
-def create_file():
-    # Je fais appel a ma methode
+# cette fonction me permet de cree un fichier csv
+def create_file(url):
+    # Je fais appel a ma fonction pour recupere mes informations de la page
     url = "http://books.toscrape.com/catalogue/in-her-wake_980/index.html"
     details_of_my_book = get_text_from_page(url)
 
