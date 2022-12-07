@@ -4,7 +4,7 @@ import csv
 #  import de Bautifulsoup de bs4 pour recuperer les donner des fichier html ou XML
 from bs4 import BeautifulSoup
 # ici je recupere l'URL principal du site
-url = "http://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html"
+url = "http://books.toscrape.com/"
 
 
 # recupere la requete sur URL en parametre
@@ -14,37 +14,49 @@ def get_request_url(url):
         return response.text
 
 # cette fonction permet de recupere tous les lien des categorie et des livres
-# def get_all_link(url):
-#     book_link = []  # j'initialise une liste vide pour pouvoir stocké les liens des livres
-#     category_link = []  # j'initialise une liste pour les category
-#     all_link = []
-#     soup = BeautifulSoup(get_request_url(
-#         url), 'html.parser')  # je cree ma soupe
-# # je boucle et pour chaque lien  je le rajoute a book_link qui va contenir tout les liens dans un premier temps
-#     for link in soup.find_all('a', href=True):
-#         book_link.append(link['href'])
 
-# # je recupere tout les liens qui contienne les categorie je les ajoutes dans la liste categorie
-# # et je les supprime de book_link
-#     for link in book_link:
-#         if ("catalogue/category/books/" in link):
-#             category_link.append(link)
-#             book_link.remove(link)
 
-#     all_link = [category_link, book_link]
-#     print(all_link[1])
+def get_all_link(url):
+    book_link = []  # j'initialise une liste vide pour pouvoir stocké les liens des livres
+    category_link = []  # j'initialise une liste pour les category
+    all_link = []
+    soup = BeautifulSoup(get_request_url(
+        url), 'html.parser')  # je cree ma soupe
+# je boucle et pour chaque lien  je le rajoute a book_link qui va contenir tout les liens dans un premier temps
+    for link in soup.find_all('a', href=True):
+        all_link.append(link['href'])
+# je recupere tout les liens qui contienne les categorie je les ajoutes dans la liste categorie
+# et je les supprime de book_link
+    for link in all_link:
+        if ("catalogue/category/books" in link):
+            category_link.append(link)
+            all_link.remove(link)
+        else:
+            book_link.append(link)
+            all_link.remove(link)
+    print("LES BOOK ==> ")
+    print(book_link)
+    print("LES CATEGORYS ==> ")
+    print(category_link)
+    print("ALL LINK ==>")
+    print(all_link)
+    """
+    A LIRE 
+    RESTE CETTE FONCTIONS QUI PERMET DE RESORTIR LES LIENS PAR CATEGORIE
+    """
 
 # cette fonctions automatise les sortie des liens et les changement de pages
 
-        # get_text_from_page fait appel a la fonction get_request_url
+# get_informations_from_page fait appel a la fonction get_request_url
+
+
+get_all_link(url)
 
 
 def get_informations_from_page(url):
     informations = []
 
     soup = BeautifulSoup(get_request_url(url), 'html.parser')
-    # recuperer les information sous forme de dictionary :
-
     # recupere les informations dans les <td> c'est à dire
     """
     ● universal_ product_code (upc)
@@ -52,7 +64,6 @@ def get_informations_from_page(url):
     ● price_excluding_tax
     ● number_available
     ● review_rating
-
     """
     all_td = soup.find_all('td')
     for td in all_td:
@@ -74,18 +85,6 @@ def get_informations_from_page(url):
 
     return informations
 
-    """
-    je boucle pour cree un dictionaire des valeurs a recuper
-    ● product_page_url
-    ● title
-    ● product_description
-    ● category
-    ● image_url
-    """
-    # for information in informations:
-    #     informations[information.th.get_text()] = information.td.get_text()
-    # return information
-
 
 # cette fonction me permet de cree un fichier csv
 def create_file(url):
@@ -98,6 +97,3 @@ def create_file(url):
         file_writer = csv.writer(fichier_csv)
         file_writer.writerow(en_tete)
         file_writer.writerow(details_of_my_book)
-
-
-create_file(url)
