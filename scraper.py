@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from math import *
 
 # ici je recupere l'URL principal du site
-url = "http://books.toscrape.com/catalogue/category/books/fiction_10/page-2.html"
+url = "http://books.toscrape.com/catalogue/category/books/add-a-comment_18/index.html"
 
 # recupere la requete sur URL en parametre
 
@@ -111,9 +111,9 @@ def change_page(url):
         return nbr_page_float
     elif (nbr_page_float > 1):
         nbr_page = ceil(nbr_page_float)
-        for page in range(nbr_page):
-            url_change = "http://books.toscrape.com/catalogue/category/books/fiction_10/page-" + \
-                str(page)+".html"
+        for page in range(1, nbr_page + 1):
+            page_x = "page-" + str(page)+".html"
+            url_change = "http://books.toscrape.com/catalogue/category/books/add-a-comment_18/" + page_x
             print(url_change)
 
 
