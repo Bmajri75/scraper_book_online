@@ -3,54 +3,54 @@ import requests
 import csv
 #  import de Bautifulsoup de bs4 pour recuperer les donner des fichier html ou XML
 from bs4 import BeautifulSoup
-# ici je recupere l'URL principal du site
-url = "http://books.toscrape.com/"
+from math import *
 
+# ici je recupere l'URL principal du site
+url = "http://books.toscrape.com/catalogue/category/books/fiction_10/page-2.html"
 
 # recupere la requete sur URL en parametre
-def get_request_url(url):
-    response = requests.get(url)
+
+
+def get_request_url(url_change):
+    response = requests.get(url_change)
     if response.ok:  # si le resultat est ok je retourne le contenue
         return response.text
 
 # cette fonction permet de recupere tous les lien des categorie et des livres
 
 
-def get_all_link(url):
-    book_link = []  # j'initialise une liste vide pour pouvoir stocké les liens des livres
-    category_link = []  # j'initialise une liste pour les category
-    all_link = []
-    soup = BeautifulSoup(get_request_url(
-        url), 'html.parser')  # je cree ma soupe
-# je boucle et pour chaque lien  je le rajoute a book_link qui va contenir tout les liens dans un premier temps
-    for link in soup.find_all('a', href=True):
-        all_link.append(link['href'])
-# je recupere tout les liens qui contienne les categorie je les ajoutes dans la liste categorie
-# et je les supprime de book_link
-    for link in all_link:
-        if ("catalogue/category/books" in link):
-            category_link.append(link)
-            all_link.remove(link)
-        else:
-            book_link.append(link)
-            all_link.remove(link)
-    print("LES BOOK ==> ")
-    print(book_link)
-    print("LES CATEGORYS ==> ")
-    print(category_link)
-    print("ALL LINK ==>")
-    print(all_link)
-    """
-    A LIRE 
-    RESTE CETTE FONCTIONS QUI PERMET DE RESORTIR LES LIENS PAR CATEGORIE
-    """
+# def get_all_link(url):
+#     book_link = []  # j'initialise une liste vide pour pouvoir stocké les liens des livres
+#     category_link = []  # j'initialise une liste pour les category
+#     all_link = []
+#     soup = BeautifulSoup(get_request_url(
+#         url), 'html.parser')  # je cree ma soupe
+# # je boucle et pour chaque lien  je le rajoute a book_link qui va contenir tout les liens dans un premier temps
+#     for link in soup.find_all('a', href=True):
+#         all_link.append(link['href'])
+# # je recupere tout les liens qui contienne les categorie je les ajoutes dans la liste categorie
+# # et je les supprime de book_link
+#     for link in all_link:
+#         if ("catalogue/category/books" in link):
+#             category_link.append(link)
+#             all_link.remove(link)
+#         else:
+#             book_link.append(link)
+#             all_link.remove(link)
+#     print("LES BOOK ==> ")
+#     print(book_link)
+#     print("LES CATEGORYS ==> ")
+#     print(category_link)
+#     print("ALL LINK ==>")
+#     print(all_link)
+#     """
+#     A LIRE
+#     RESTE CETTE FONCTIONS QUI PERMET DE RESORTIR LES LIENS PAR CATEGORIE
+#     """
 
 # cette fonctions automatise les sortie des liens et les changement de pages
 
 # get_informations_from_page fait appel a la fonction get_request_url
-
-
-get_all_link(url)
 
 
 def get_informations_from_page(url):
@@ -97,3 +97,24 @@ def create_file(url):
         file_writer = csv.writer(fichier_csv)
         file_writer.writerow(en_tete)
         file_writer.writerow(details_of_my_book)
+
+
+# ici je calcule le nombre de page et je change les page pour boucler mon resultat
+def change_page(url):
+    soup = BeautifulSoup(get_request_url(url), 'html.parser')
+    # ici je prend le nombre de produit par categorie
+    result = soup.find_all("strong")[1].text
+
+    nbr_page_float = int(result) / 20
+
+    if (nbr_page_float < 1):
+        return nbr_page_float
+    elif (nbr_page_float > 1):
+        nbr_page = ceil(nbr_page_float)
+        for page in range(nbr_page):
+            url_change = "http://books.toscrape.com/catalogue/category/books/fiction_10/page-" + \
+                str(page)+".html"
+            print(url_change)
+
+
+print(change_page(url))
