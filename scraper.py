@@ -8,17 +8,14 @@ from math import *
 # ici je recupere l'URL principal du site
 url = "http://books.toscrape.com/catalogue/category/books/add-a-comment_18/index.html"
 
-# recupere la requete sur URL en parametre
-
 
 def get_request_url(url_change):
     response = requests.get(url_change)
     if response.ok:  # si le resultat est ok je retourne le contenue
         return response.text
 
+
 # cette fonction permet de recupere tous les lien des categorie et des livres
-
-
 # def get_all_link(url):
 #     book_link = []  # j'initialise une liste vide pour pouvoir stocké les liens des livres
 #     category_link = []  # j'initialise une liste pour les category
@@ -47,8 +44,15 @@ def get_request_url(url_change):
 #     A LIRE
 #     RESTE CETTE FONCTIONS QUI PERMET DE RESORTIR LES LIENS PAR CATEGORIE
 #     """
-
 # cette fonctions automatise les sortie des liens et les changement de pages
+"""
+A FAIRE => POUR OPTIMISER CETTE FONCTIONS
+POUR CHANGER CETTE FONCTION
+je prend tous les liens de la class .nav-list elle corespond au lien des category
+
+
+et tous les liens find_all de la class product_pod reprend chaque livre de la page
+"""
 
 # get_informations_from_page fait appel a la fonction get_request_url
 
