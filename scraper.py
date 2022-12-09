@@ -6,44 +6,58 @@ from bs4 import BeautifulSoup
 from math import *
 
 # ici je recupere l'URL principal du site
-url = "http://books.toscrape.com/catalogue/category/books/add-a-comment_18/index.html"
+url = "http://books.toscrape.com/index.html"
 
 
-def get_request_url(url_change):
-    response = requests.get(url_change)
+def get_request_url(url):
+    response = requests.get(url)
     if response.ok:  # si le resultat est ok je retourne le contenue
         return response.text
 
 
-# cette fonction permet de recupere tous les lien des categorie et des livres
-# def get_all_link(url):
-#     book_link = []  # j'initialise une liste vide pour pouvoir stocké les liens des livres
-#     category_link = []  # j'initialise une liste pour les category
-#     all_link = []
-#     soup = BeautifulSoup(get_request_url(
-#         url), 'html.parser')  # je cree ma soupe
-# # je boucle et pour chaque lien  je le rajoute a book_link qui va contenir tout les liens dans un premier temps
-#     for link in soup.find_all('a', href=True):
-#         all_link.append(link['href'])
-# # je recupere tout les liens qui contienne les categorie je les ajoutes dans la liste categorie
-# # et je les supprime de book_link
-#     for link in all_link:
-#         if ("catalogue/category/books" in link):
-#             category_link.append(link)
-#             all_link.remove(link)
-#         else:
-#             book_link.append(link)
-#             all_link.remove(link)
-#     print("LES BOOK ==> ")
-#     print(book_link)
-#     print("LES CATEGORYS ==> ")
-#     print(category_link)
-#     print("ALL LINK ==>")
-#     print(all_link)
-#     """
-#     A LIRE
-#     RESTE CETTE FONCTIONS QUI PERMET DE RESORTIR LES LIENS PAR CATEGORIE
-#     """
+def get_all_link(url):
+    # cette fonction permet de recupere tous les lien des categorie et des livres
+    book_link = []
+    category_link = []
+    all_link = []
+    # J'initialise les list qui vons recevoir les liens
+
+    soup = BeautifulSoup(get_request_url(
+        url), 'html.parser')
+    # Je fait ma soupe
+
+    category = (soup.select(".nav-list > li > ul > li > a"))
+    book = soup.find_all(class_="image_container")
+    book_per_page = soup.find_all("strong")[2].text
+    # Je recupere les liens de mes categorie, de mon book, et le nombre de livre par page
+
+    for i in range(0, 50):
+        category_link.append("http://books.toscrape.com/" +
+                             category[i]['href'].replace('../', ''))
+    del category_link[16]
+    # je boucle pour recuperer les liens et je supprime un index car il ne correspond a rien
+
+    for i in range(int(book_per_page)):
+        book_link.append("http://books.toscrape.com/" + book[i].a['href'])
+
+    all_link = [category_link, book_link]
+    return all_link
+    # Je retourne toutes les listes dans une liste comunes
+
+
+print(get_all_link(url))
+# je boucle et pour chaque lien  je le rajoute a category_link qui va contenir tout les liens dans un premier temps
+# for link in category_link:
+#     print(link)
+# je recupere tout les liens qui contienne les categorie je les ajoutes dans la liste categorie
+# et je les supprime de book_link
+
+"""
+        A LIRE
+        RESTE CETTE FONCTIONS QUI PERMET DE RESORTIR LES LIENS PAR CATEGORIE
+    """
+
+
 # cette fonctions automatise les sortie des liens et les changement de pages
 """
 A FAIRE => POUR OPTIMISER CETTE FONCTIONS
@@ -94,8 +108,8 @@ def get_informations_from_page(url):
 def create_file(url):
     # Je fais appel a ma fonction pour recupere mes informations de la page
     details_of_my_book = get_informations_from_page(url)
-    en_tete = ["Product_page_url", "upc", "Title", "Price_including_tax", "Price_excluding_tax",
-               "Pumber_available", "Product_description", "Category", "Review_rating", "Image_url"]
+    en_tete = ("Product_page_url", "upc", "Title", "Price_including_tax", "Price_excluding_tax",
+               "Pumber_available", "Product_description", "Category", "Review_rating", "Image_url")
 
     with open('data.csv', 'w') as fichier_csv:
         file_writer = csv.writer(fichier_csv)
@@ -118,7 +132,5 @@ def change_page(url):
         for page in range(1, nbr_page + 1):
             page_x = "page-" + str(page)+".html"
             url_change = "http://books.toscrape.com/catalogue/category/books/add-a-comment_18/" + page_x
-            print(url_change)
-
-
-print(change_page(url))
+            soup = BeautifulSoup(get_request_url(url_change))
+# Recuperer les lien par livres
