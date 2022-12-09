@@ -43,46 +43,33 @@ def get_all_link(url):
     all_link = [category_link, book_link]
     return all_link
     # Je retourne toutes les listes dans une liste comunes
+# ici je calcule le nombre de page et je change les page pour boucler mon resultat
 
 
-print(get_all_link(url))
-# je boucle et pour chaque lien  je le rajoute a category_link qui va contenir tout les liens dans un premier temps
-# for link in category_link:
-#     print(link)
-# je recupere tout les liens qui contienne les categorie je les ajoutes dans la liste categorie
-# et je les supprime de book_link
-
-"""
-        A LIRE
-        RESTE CETTE FONCTIONS QUI PERMET DE RESORTIR LES LIENS PAR CATEGORIE
-    """
-
-
-# cette fonctions automatise les sortie des liens et les changement de pages
-"""
-A FAIRE => POUR OPTIMISER CETTE FONCTIONS
-POUR CHANGER CETTE FONCTION
-je prend tous les liens de la class .nav-list elle corespond au lien des category
+def change_page(url):
+    soup = BeautifulSoup(get_request_url(url), 'html.parser')
+    # ici je prend le nombre de produit par categorie
+    result = soup.find_all("strong")[1].text
+    nbr_page_float = int(result) / 20
+    if (nbr_page_float < 1):
+        return nbr_page_float
+    elif (nbr_page_float > 1):
+        nbr_page = ceil(nbr_page_float)
+        for page in range(1, nbr_page + 1):
+            page_x = "page-" + str(page)+".html"
+            url_change = "http://books.toscrape.com/catalogue/category/books/add-a-comment_18/" + page_x
+            soup = BeautifulSoup(get_request_url(url_change))
+# Recuperer les lien par livres
 
 
-et tous les liens find_all de la class product_pod reprend chaque livre de la page
-"""
-
-# get_informations_from_page fait appel a la fonction get_request_url
-
-
+# recupere les information de la page
 def get_informations_from_page(url):
+    # Recuperation des informations de la page pour cree le CSV
     informations = []
 
     soup = BeautifulSoup(get_request_url(url), 'html.parser')
     # recupere les informations dans les <td> c'est à dire
-    """
-    ● universal_ product_code (upc)
-    ● price_including_tax
-    ● price_excluding_tax
-    ● number_available
-    ● review_rating
-    """
+
     all_td = soup.find_all('td')
     for td in all_td:
         informations.append(td.text)
@@ -115,22 +102,3 @@ def create_file(url):
         file_writer = csv.writer(fichier_csv)
         file_writer.writerow(en_tete)
         file_writer.writerow(details_of_my_book)
-
-
-# ici je calcule le nombre de page et je change les page pour boucler mon resultat
-def change_page(url):
-    soup = BeautifulSoup(get_request_url(url), 'html.parser')
-    # ici je prend le nombre de produit par categorie
-    result = soup.find_all("strong")[1].text
-
-    nbr_page_float = int(result) / 20
-
-    if (nbr_page_float < 1):
-        return nbr_page_float
-    elif (nbr_page_float > 1):
-        nbr_page = ceil(nbr_page_float)
-        for page in range(1, nbr_page + 1):
-            page_x = "page-" + str(page)+".html"
-            url_change = "http://books.toscrape.com/catalogue/category/books/add-a-comment_18/" + page_x
-            soup = BeautifulSoup(get_request_url(url_change))
-# Recuperer les lien par livres
