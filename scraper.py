@@ -1,74 +1,63 @@
-# import du package requests, celui ci me permet de faire des requetes HTTP
+# import des package
 import requests
 import csv
-#  import de Bautifulsoup de bs4 pour recuperer les donner des fichier html ou XML
 from bs4 import BeautifulSoup
 from math import *
 
-# ici je recupere l'URL principal du site
+
+# je recupere l'URL  qui sera envoyé en requette
 url = "http://books.toscrape.com/index.html"
 
 
 def get_request_url(url):
+    # Ma fonction prend en entré une URL
+    #! => renvoie ma variable Soup avec le contenue de la page parsé
     response = requests.get(url)
-    if response.ok:  # si le resultat est ok je retourne le contenue
-        return response.text
+    if response.ok:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        return soup
 
 
-def get_all_link(url):
-    # cette fonction permet de recupere tous les lien des categorie et des livres
-    book_link = []
+def get_categorys_link(url):
+    #  1 - Ma fonction prend en entrée un lien de la page principal,
+    #  2 - Elle fait appel à la fonction get_request_url()
+    #!  3 - => Elle renvoie une liste de tout les liens de la partie Category
+    #! category_link[]
+    soup = get_request_url(url)
     category_link = []
-    all_link = []
-    # J'initialise les list qui vons recevoir les liens
-
-    soup = BeautifulSoup(get_request_url(
-        url), 'html.parser')
-    # Je fait ma soupe
-
     category = (soup.select(".nav-list > li > ul > li > a"))
-    book = soup.find_all(class_="image_container")
-    book_per_page = soup.find_all("strong")[2].text
-    # Je recupere les liens de mes categorie, de mon book, et le nombre de livre par page
 
     for i in range(0, 50):
         category_link.append("http://books.toscrape.com/" +
                              category[i]['href'].replace('../', ''))
+        next = soup.find(class_="next")
+        page_x = next.a['href'] + ".html"
+        print(category_link[i] + page_x)
     del category_link[16]
-    # je boucle pour recuperer les liens et je supprime un index car il ne correspond a rien
-
-    for i in range(int(book_per_page)):
-        book_link.append("http://books.toscrape.com/" + book[i].a['href'])
-
-    all_link = [category_link, book_link]
-    return all_link
-    # Je retourne toutes les listes dans une liste comunes
-# ici je calcule le nombre de page et je change les page pour boucler mon resultat
+    return category_link
 
 
-def change_page(url):
-    soup = BeautifulSoup(get_request_url(url), 'html.parser')
-    # ici je prend le nombre de produit par categorie
-    result = soup.find_all("strong")[1].text
-    nbr_page_float = int(result) / 20
-    if (nbr_page_float < 1):
-        return nbr_page_float
-    elif (nbr_page_float > 1):
-        nbr_page = ceil(nbr_page_float)
-        for page in range(1, nbr_page + 1):
-            page_x = "page-" + str(page)+".html"
-            url_change = "http://books.toscrape.com/catalogue/category/books/add-a-comment_18/" + page_x
-            soup = BeautifulSoup(get_request_url(url_change))
-# Recuperer les lien par livres
+def get_books_link(url_category):
+    #  1 - Ma fonction prend en entrée un lien de la page category,
+    #  2 - Elle fait appel à la fonction get_request_url()
+    #!  3 - => Elle renvoie une liste de tout les liens de la partie Livre
+    #! book_link[]
+    soup = get_request_url(url_category)
+    book_link = []
+    books = soup.find_all(class_="image_container")
+
+    for i in range(0, len(books)):
+        book_link.append(
+            "http://books.toscrape.com/catalogue/" + books[i].a['href'].replace('../', ''))
+    return book_link
 
 
-# recupere les information de la page
 def get_informations_from_page(url):
     # Recuperation des informations de la page pour cree le CSV
     informations = []
 
-    soup = BeautifulSoup(get_request_url(url), 'html.parser')
-    # recupere les informations dans les <td> c'est à dire
+# recupere les informations dans les <td> c'est à dire
+    soup = get_request_url(url)
 
     all_td = soup.find_all('td')
     for td in all_td:
@@ -91,14 +80,56 @@ def get_informations_from_page(url):
     return informations
 
 
+# recupere_infos_page = get_informations_from_page(nombre_of_page)
 # cette fonction me permet de cree un fichier csv
+
+
 def create_file(url):
     # Je fais appel a ma fonction pour recupere mes informations de la page
     details_of_my_book = get_informations_from_page(url)
     en_tete = ("Product_page_url", "upc", "Title", "Price_including_tax", "Price_excluding_tax",
                "Pumber_available", "Product_description", "Category", "Review_rating", "Image_url")
 
-    with open('data.csv', 'w') as fichier_csv:
+    with open('data.csv', 'a') as fichier_csv:
         file_writer = csv.writer(fichier_csv)
         file_writer.writerow(en_tete)
         file_writer.writerow(details_of_my_book)
+
+
+def main(url):
+    """
+    2 - je boucle les categories
+        2-a je prend une categorie
+            je lance une requetes pour la page cstegorie
+                je lance une requetes pour le premier livre
+                   je recupere les informations pour mon premier livre
+                    je cree mon fichier CSV
+                je lance une requettes pour mon second livre
+                    (je recupere les informations que je rajoute au fichier csv deja cree )
+                    (ou je cree un dictonnaire avec toutes les donnée et je cree le fichier une fois tout recuperer).
+                je fait pareil pour tout les autres livres de la page
+                    {si il y a plusieurs pages,}
+                        je change de page et je retourne a l'etape des recuperation des information
+                l'orsque tout a été fait
+                    je cree mon CSV et
+            je change de categorie
+                je repete l'etapes jusqu'a plu de categories
+        """
+    list_books = []
+    list_categorys = []
+    list_categorys = get_categorys_link(url)
+    for category in list_categorys:
+        print("dans la category" + category)
+        list_books = get_books_link(category)
+        for book in list_books:
+            print("DANS LE LIVRE" + book)
+            create_file(book)
+
+
+"""
+        A FAIRE 
+        1 - REGLER LES LIENS DANS LA FONCTION GET CATEGORY LINK
+        2 - FINIRE LA FONCTION MAIN QUI REGROUPE TOUS
+        3 _ TROUVER UNE SOLUTION POUR REPONDRE AU DONNés VIDE COMME DESCRIPTION DANS LE CSV
+"""
+get_categorys_link(url)
