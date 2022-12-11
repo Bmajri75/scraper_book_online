@@ -1,8 +1,8 @@
 # import des package
 import requests
 import csv
+import re
 from bs4 import BeautifulSoup
-from math import *
 
 
 # je recupere l'URL  qui sera envoyé en requette
@@ -28,13 +28,21 @@ def get_categorys_link(url):
     category = (soup.select(".nav-list > li > ul > li > a"))
 
     for i in range(0, 50):
-        category_link.append("http://books.toscrape.com/" +
-                             category[i]['href'].replace('../', ''))
-        next = soup.find(class_="next")
-        page_x = next.a['href'] + ".html"
-        print(category_link[i] + page_x)
-    del category_link[16]
+        category_link.append("http://books.toscrape.com/catalogue/category/books/" +
+                             category[i]['href'].replace('catalogue/category/books/', ''))
     return category_link
+
+
+def get_next_pages(url_category):
+    soup = get_request_url(url_category)
+    if (soup.find(class_="next")):
+        next = soup.find(class_="next")
+        page_x = next.a['href'].replace("catalogue/", "")
+        nbr_page = re.findall("index.html|page...html$", str(url_category))
+        print(nbr_page)
+        if (nbr_page):
+            next_page_url = url_category.replace(nbr_page[0], page_x)
+            return next_page_url
 
 
 def get_books_link(url_category):
@@ -127,9 +135,10 @@ def main(url):
 
 
 """
-        A FAIRE 
+        A FAIRE
         1 - REGLER LES LIENS DANS LA FONCTION GET CATEGORY LINK
         2 - FINIRE LA FONCTION MAIN QUI REGROUPE TOUS
         3 _ TROUVER UNE SOLUTION POUR REPONDRE AU DONNés VIDE COMME DESCRIPTION DANS LE CSV
 """
-get_categorys_link(url)
+print(get_next_pages(
+    "http://books.toscrape.com/catalogue/category/books/add-a-comment_18/page-3.html"))
