@@ -18,6 +18,27 @@ def get_request_url(url):
         return soup
 
 
+def get_next_pages(url_category):
+    soup = get_request_url(url_category)
+    if (soup.find(class_="next")):
+        next = soup.find(class_="next")
+        nbr_page = re.findall("index.html|page...html$", url_category)
+        page_x = next.a['href']
+        next_page_url = url_category.replace(str(nbr_page[0]), page_x)
+        return get_next_pages(next_page_url)
+    return url_category
+
+
+# ERREUR VIEN De ICI
+'''
+a l'appel de la recursivité de la fonction get_next_pages() celle ci renvoie none
+cependent la variable next_page_url renvoie bien la str attendue 
+'''
+
+# print(get_next_pages(
+#     'http://books.toscrape.com/catalogue/category/books/add-a-comment_18/index.html'))
+
+
 def get_categorys_link(url):
     #  1 - Ma fonction prend en entrée un lien de la page principal,
     #  2 - Elle fait appel à la fonction get_request_url()
@@ -28,21 +49,19 @@ def get_categorys_link(url):
     category = (soup.select(".nav-list > li > ul > li > a"))
 
     for i in range(0, 50):
-        category_link.append("http://books.toscrape.com/catalogue/category/books/" +
-                             category[i]['href'].replace('catalogue/category/books/', ''))
+        category_link.append(
+            "http://books.toscrape.com/" + category[i]['href'])
+        soup = get_request_url(category_link[i])
+        if (soup.find(class_="next")):
+            print("PLUSIEURS PAGE ICI JE RAJOUTE" + category_link[i])
+            category_link.append(get_next_pages(category_link[i]))
+        else:
+            print("RIEN ICI AU NEXT")
+        #     category_link.append(get_next_pages(category_link[i]))
     return category_link
 
 
-def get_next_pages(url_category):
-    soup = get_request_url(url_category)
-    if (soup.find(class_="next")):
-        next = soup.find(class_="next")
-        page_x = next.a['href'].replace("catalogue/", "")
-        nbr_page = re.findall("index.html|page...html$", str(url_category))
-        print(nbr_page)
-        if (nbr_page):
-            next_page_url = url_category.replace(nbr_page[0], page_x)
-            return next_page_url
+print(get_categorys_link(url))
 
 
 def get_books_link(url_category):
@@ -53,19 +72,18 @@ def get_books_link(url_category):
     soup = get_request_url(url_category)
     book_link = []
     books = soup.find_all(class_="image_container")
-
     for i in range(0, len(books)):
         book_link.append(
             "http://books.toscrape.com/catalogue/" + books[i].a['href'].replace('../', ''))
     return book_link
 
 
-def get_informations_from_page(url):
+def get_informations_from_page(url_book):
     # Recuperation des informations de la page pour cree le CSV
     informations = []
 
 # recupere les informations dans les <td> c'est à dire
-    soup = get_request_url(url)
+    soup = get_request_url(url_book)
 
     all_td = soup.find_all('td')
     for td in all_td:
@@ -88,13 +106,9 @@ def get_informations_from_page(url):
     return informations
 
 
-# recupere_infos_page = get_informations_from_page(nombre_of_page)
-# cette fonction me permet de cree un fichier csv
-
-
-def create_file(url):
+def create_file(url_book):
     # Je fais appel a ma fonction pour recupere mes informations de la page
-    details_of_my_book = get_informations_from_page(url)
+    details_of_my_book = get_informations_from_page(url_book)
     en_tete = ("Product_page_url", "upc", "Title", "Price_including_tax", "Price_excluding_tax",
                "Pumber_available", "Product_description", "Category", "Review_rating", "Image_url")
 
@@ -127,7 +141,6 @@ def main(url):
     list_categorys = []
     list_categorys = get_categorys_link(url)
     for category in list_categorys:
-        print("dans la category" + category)
         list_books = get_books_link(category)
         for book in list_books:
             print("DANS LE LIVRE" + book)
@@ -140,5 +153,3 @@ def main(url):
         2 - FINIRE LA FONCTION MAIN QUI REGROUPE TOUS
         3 _ TROUVER UNE SOLUTION POUR REPONDRE AU DONNés VIDE COMME DESCRIPTION DANS LE CSV
 """
-print(get_next_pages(
-    "http://books.toscrape.com/catalogue/category/books/add-a-comment_18/page-3.html"))
