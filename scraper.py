@@ -19,32 +19,6 @@ def get_request_url(url):
         return soup
 
 
-# def get_next_pages(url_category):
-#     next_page_url = []
-#     while True:
-#         soup = get_request_url(url_category)
-#
-#             break
-#         else:
-#             number_pages = int(
-#                 soup.find(class_="form-horizontal").find("strong").string) / 20
-#             number_pages = math.ceil(number_pages)
-#             for i in range(1, number_pages):
-#
-#                 get_next_pages(next_page_url[0])
-#             return next_page_url
-
-
-# ERREUR VIEN De ICI
-'''
-a l'appel de la recursivité de la fonction get_next_pages() celle ci renvoie none
-cependent la variable next_page_url renvoie bien la str attendue
-'''
-
-# print(get_next_pages(
-#     'http://books.toscrape.com/catalogue/category/books/add-a-comment_18/index.html'))
-
-
 def get_all_categorys_link(url):
     #  1 - Ma fonction prend en entrée un lien de la page principal,
     #  2 - Elle fait appel à la fonction get_request_url()
@@ -95,20 +69,6 @@ def get_books_link(url_category):
     return book_links
 
 
-#! FIN DU IF
-# print(get_next_pages(url_category))
-# for link in new_url:
-
-# soup = get_request_url(i)
-# for i in range(len(books)):
-#     book_link.append("http://books.toscrape.com/catalogue/" +
-#                      books[i].a['href'].replace('../', ''))
-# print(book_link)
-
-print(len(get_books_link(
-    "http://books.toscrape.com/catalogue/category/books/historical-fiction_4/index.html")))
-
-
 def get_informations_from_page(url_book):
     informations = []
     soup = get_request_url(url_book)
@@ -141,23 +101,6 @@ def create_file(url_book):
         file_writer = csv.writer(fichier_csv)
         file_writer.writerow(en_tete)
         file_writer.writerow(details_of_my_book)
-
-
-# def principal_function(url):
-#     list_books = []
-#     list_categorys = []
-#     list_categorys = get_all_categorys_link(url)
-#     for category in list_categorys:
-#         soup = get_request_url(category)
-
-#         # for page in range(number_pages):
-#         #     list_books.append(get_books_link(category))
-#         #     get_next_pages(category)
-#         #     print(list_books)
-
-#         #     for book in list_books:
-#         #         print(book)
-#         #         create_file(book)
 
 
 # # principal_function(url)
