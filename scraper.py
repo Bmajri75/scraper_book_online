@@ -3,6 +3,7 @@ import requests
 import csv
 import re
 import math
+import os
 from bs4 import BeautifulSoup
 
 
@@ -77,8 +78,11 @@ def get_informations_from_page(url_book):
         informations.append(td.text)
     title = soup.find('h1').text
     informations[1] = title
-    description = soup.select(".product_page > p")[0].text
-    informations.insert(6, description)
+    description = soup.find("p", class_="")
+    if description:
+        informations.insert(6, description.text)
+    else:
+        informations.insert(6, "no description")
     categorie = soup.select('.breadcrumb > li')[2].text
     informations.insert(7, categorie)
     image_selector = soup.select(".item > img")
@@ -95,11 +99,25 @@ def create_file(url_book):
     details_of_my_book = get_informations_from_page(url_book)
     en_tete = ("Product_page_url", "upc", "Title", "Price_including_tax", "Price_excluding_tax",
                "Pumber_available", "Product_description", "Category", "Review_rating", "Image_url")
+    category_name = re.sub("\s", "", details_of_my_book[7])
+    book_name = re.sub("\s", "", details_of_my_book[2])
 
-    with open('data.csv', 'a', newline="", encoding="utf-8") as fichier_csv:
-        file_writer = csv.writer(fichier_csv)
-        file_writer.writerow(en_tete)
-        file_writer.writerow(details_of_my_book)
+    os.makedirs("./Datas", exist_ok=True)
+    with open(f"./Datas/{category_name}.csv", 'a', newline="",  encoding="utf-8") as fichier_csv:
+        writer = csv.writer(fichier_csv)
+        writer.writerow(en_tete)
+        writer.writerow(details_of_my_book)
+        print(
+            f"Les informations concernant {details_of_my_book[2]} sont bien telechargés dans le dossier ./Datas")
+
+    img = requests.get(details_of_my_book[9])
+    if img.ok:
+        new_book_name = book_name.replace("/", "_")
+        os.makedirs("./Images", exist_ok=True)
+        with open(f"Images/{new_book_name}.jpg", 'wb') as file:
+            file.write(img.content)
+        print(
+            f"L'image {details_of_my_book[9]} est bien telechargé dans le dossier ./Images")
 
 
 def main(url):
@@ -110,7 +128,10 @@ def main(url):
         all_books = get_books_link(link)
         for book in all_books:
             create_file(book)
+
+
 #! END BOUCLE
     # # principal_function(url)
     # # A FAIRE
     # # 1 - REGLER LES LIENS DANS LA FONCTION GET CATEGORY LINK
+main(url)
