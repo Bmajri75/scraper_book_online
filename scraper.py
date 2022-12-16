@@ -113,7 +113,7 @@ def main(url):
             category_name = re.sub("\s", "", info_book[7])
             book_name = re.sub("\s", "", info_book[2])
 
-            # je recupere mes get_informations_from_pagesi ma requettes est ok
+            # je recupere mes img si ma requettes renvoie 200
             img = requests.get(info_book[9])
             if img.ok:
                 new_book_name = book_name.replace("/", "_")
