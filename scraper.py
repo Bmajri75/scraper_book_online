@@ -41,36 +41,35 @@ def get_books_link(url_category):
     #! book_link[]
     book_links = []
     soup = get_request_url(url_category)
+    # Quoi qu'il en soit je boucle une premiere fois
     books = soup.find_all(class_="image_container")
-#! DEBUT BOUCLE FOR IN LISTE LIVRE
     for index in range(len(books)):
         book_links.append("http://books.toscrape.com/catalogue/" +
                           books[index].a['href'].replace('../', ''))
-#! DEBUT BOUCLE FOR IN LISTE LIVRE
-
-#! DEBUT DE MA CONDITION
+    # Je recupere le next de la page si il y en a
     next = soup.select_one("li.next>a")
     if (next != None):
+        # Je calcule le nombre de page que je divise par 20 et j'arrondie au nbr supperieur
         number_pages = int(
             soup.find(class_="form-horizontal").find("strong").string) / 20
         number_pages = math.ceil(number_pages)
-    # !DEBUT DE MA FOR POUR CHANGER DE PAGE
         for page in range(2, number_pages + 1):
             link_finaly = re.findall("index.html|page...html$", url_category)
             page_x = f"page-{page}.html"
             soup = get_request_url(url_category.replace(
                 str(link_finaly[0]), page_x))
-            #! DEBUT BOUCLE FOR IN LISTE LIVRE
             books = soup.find_all(class_="image_container")
             for index in range(len(books)):
                 book_links.append("http://books.toscrape.com/catalogue/" +
                                   books[index].a['href'].replace('../', ''))
-            #!! FIN DE LA BOUCLE FOR IN LISTE DE LIVRE
-#! FIN DE MA CONDITION
     return book_links
 
 
 def get_informations_from_page(url_book):
+    #  1 - Ma fonction prend en entrée un lien de la page du livre,
+    #  2 - Elle fait appel à la fonction get_request_url()
+    #!  3 - => Elle renvoie une liste de tout les informations demandé du Livre
+    #! informatios[]
     informations = []
     soup = get_request_url(url_book)
     all_td = soup.find_all('td')
@@ -94,22 +93,27 @@ def get_informations_from_page(url_book):
     return informations
 
 
-# def create_file(url_book):
-
-
 def main(url):
-    #! JE RECUPERE TOUTES LES CATEGORIES
+    #  1 - Ma fonction prend en entrée  url de la page d'accueil,
+    #  2 - elle reprend toutes mes fonctions
+    #!  3 - => Elle renvoie  les fichiers et dossier demandés
+    #! Datas/ lescategories.csv
+    #! images/photo.jpg
     all_categorys = get_all_categorys_link(url)
-#! START BOUCLE
+    # une premiere boucle pour recuperer les categories
     for link in all_categorys:
         details_of_my_book = []
         all_books = get_books_link(link)
+        # chaque categories boucle sur chaque livre et recupere les liesn
         for book in all_books:
             info_book = get_informations_from_page(book)
-        # Je fait une zone tempon dans le details of my books
+        # Je fait une zone tempon dans le details of my books cette liste permet
+        # d'utiliser la fonction writerows( pour avoir l'ecriture du fichier en une fois et juste un entete)
             details_of_my_book.append(info_book)
             category_name = re.sub("\s", "", info_book[7])
             book_name = re.sub("\s", "", info_book[2])
+
+            # je recupere mes get_informations_from_pagesi ma requettes est ok
             img = requests.get(info_book[9])
             if img.ok:
                 new_book_name = book_name.replace("/", "_")
@@ -118,7 +122,6 @@ def main(url):
                     file.write(img.content)
                 print(
                     f"L'image {info_book[9]} est bien telechargé dans le dossier ./Images")
-            #! SORTIE DE BOUCLES
         en_tete = ("Product_page_url", "upc", "Title", "Price_including_tax", "Price_excluding_tax",
                    "Pumber_available", "Product_description", "Category", "Review_rating", "Image_url")
         os.makedirs("./Datas", exist_ok=True)
@@ -130,8 +133,4 @@ def main(url):
                 f"Les informations concernant {info_book[7]} sont bien telechargés dans le dossier ./Datas")
 
 
-#! END BOUCLE
-    # # principal_function(url)
-    # # A FAIRE
-    # # 1 - REGLER LES LIENS DANS LA FONCTION GET CATEGORY LINK
 main(url)
