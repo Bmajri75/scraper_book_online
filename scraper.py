@@ -88,36 +88,13 @@ def get_informations_from_page(url_book):
     image_selector = soup.select(".item > img")
     image_url = "http://books.toscrape.com/"+image_selector[0]['src']
     informations.append(image_url)
-    informations.insert(0, url)
+    informations.insert(0, url_book)
     informations.pop(5)
 
     return informations
 
 
-def create_file(url_book):
-    # Je fais appel a ma fonction pour recupere mes informations de la page
-    details_of_my_book = get_informations_from_page(url_book)
-    en_tete = ("Product_page_url", "upc", "Title", "Price_including_tax", "Price_excluding_tax",
-               "Pumber_available", "Product_description", "Category", "Review_rating", "Image_url")
-    category_name = re.sub("\s", "", details_of_my_book[7])
-    book_name = re.sub("\s", "", details_of_my_book[2])
-
-    os.makedirs("./Datas", exist_ok=True)
-    with open(f"./Datas/{category_name}.csv", 'a', newline="",  encoding="utf-8") as fichier_csv:
-        writer = csv.writer(fichier_csv)
-        writer.writerow(en_tete)
-        writer.writerow(details_of_my_book)
-        print(
-            f"Les informations concernant {details_of_my_book[2]} sont bien telechargés dans le dossier ./Datas")
-
-    img = requests.get(details_of_my_book[9])
-    if img.ok:
-        new_book_name = book_name.replace("/", "_")
-        os.makedirs("./Images", exist_ok=True)
-        with open(f"Images/{new_book_name}.jpg", 'wb') as file:
-            file.write(img.content)
-        print(
-            f"L'image {details_of_my_book[9]} est bien telechargé dans le dossier ./Images")
+# def create_file(url_book):
 
 
 def main(url):
@@ -125,9 +102,32 @@ def main(url):
     all_categorys = get_all_categorys_link(url)
 #! START BOUCLE
     for link in all_categorys:
+        details_of_my_book = []
         all_books = get_books_link(link)
         for book in all_books:
-            create_file(book)
+            info_book = get_informations_from_page(book)
+        # Je fait une zone tempon dans le details of my books
+            details_of_my_book.append(info_book)
+            category_name = re.sub("\s", "", info_book[7])
+            book_name = re.sub("\s", "", info_book[2])
+            img = requests.get(info_book[9])
+            if img.ok:
+                new_book_name = book_name.replace("/", "_")
+                os.makedirs("./Images", exist_ok=True)
+                with open(f"Images/{new_book_name}.jpg", 'wb') as file:
+                    file.write(img.content)
+                print(
+                    f"L'image {info_book[9]} est bien telechargé dans le dossier ./Images")
+            #! SORTIE DE BOUCLES
+        en_tete = ("Product_page_url", "upc", "Title", "Price_including_tax", "Price_excluding_tax",
+                   "Pumber_available", "Product_description", "Category", "Review_rating", "Image_url")
+        os.makedirs("./Datas", exist_ok=True)
+        with open(f"./Datas/{category_name}.csv", 'w', newline="",  encoding="utf-8") as fichier_csv:
+            writer = csv.writer(fichier_csv)
+            writer.writerow(en_tete)
+            writer.writerows(details_of_my_book)
+            print(
+                f"Les informations concernant {info_book[7]} sont bien telechargés dans le dossier ./Datas")
 
 
 #! END BOUCLE
