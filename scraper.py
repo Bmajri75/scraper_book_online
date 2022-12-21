@@ -74,12 +74,14 @@ def get_informations_from_page(url_book):
     soup = get_request_url(url_book)
     all_td = soup.find_all('td')
     for td in all_td:
-        informations.append(td.text)
+        informations.append(td.text.replace("Â", ""))
     title = soup.find('h1').text
+    stars = soup.find("p", class_="star-rating").get("class")[1]
+    informations[6] = f"{stars} star(s)"
     informations[1] = title
     description = soup.find("p", class_="")
     if description:
-        informations.insert(6, description.text)
+        informations.insert(6, re.sub("[âÂ€]", " ", description.text))
     else:
         informations.insert(6, "no description")
     categorie = soup.select('.breadcrumb > li')[2].text
@@ -89,7 +91,6 @@ def get_informations_from_page(url_book):
     informations.append(image_url)
     informations.insert(0, url_book)
     informations.pop(5)
-
     return informations
 
 
@@ -125,7 +126,7 @@ def main(url):
         en_tete = ("Product_page_url", "upc", "Title", "Price_including_tax", "Price_excluding_tax",
                    "Pumber_available", "Product_description", "Category", "Review_rating", "Image_url")
         os.makedirs("./Datas", exist_ok=True)
-        with open(f"./Datas/{category_name}.csv", 'w', newline="",  encoding="utf-8") as fichier_csv:
+        with open(f"./Datas/{category_name}.csv", 'w', newline="",  encoding="utf-8-sig") as fichier_csv:
             writer = csv.writer(fichier_csv)
             writer.writerow(en_tete)
             writer.writerows(details_of_my_book)
